@@ -7,9 +7,10 @@ interface SidebarProps {
   setActivePage: (page: string) => void;
   onLogout: () => void;
   isAdmin?: boolean;
+  userName?: string;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, onLogout, isAdmin }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, onLogout, isAdmin, userName }) => {
   const navigate = useNavigate();
 
   const navItems = [
@@ -29,7 +30,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, onLogout, 
 
   return (
     <div className="w-64 bg-gray-800 rounded-2xl shadow-2xl p-6 flex flex-col fixed h-full m-4 border border-gray-700">
-      <div className="text-3xl font-bold text-teal-400 mb-8 text-center">PortafolioAI</div>
+      <div className="text-3xl font-bold text-teal-400 mb-2 text-center">PortafolioAI</div>
+      {userName && (
+        <div className="text-lg text-gray-200 mb-6 text-center">👤 {userName}</div>
+      )}
       <nav className="flex-grow">
         <ul className="space-y-2">
           {navItems.map((item) => (
@@ -62,4 +66,3 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, onLogout, 
   );
 };
 
-export default Sidebar;

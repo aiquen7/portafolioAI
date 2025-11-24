@@ -102,7 +102,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
         onLoginSuccess('login');
       }
     } catch (err: any) {
-      setError(err.response?.data?.detail || 'Ocurrió un error');
+      if (err.response?.status === 401) {
+        setError('Contraseña incorrecta');
+      } else {
+        setError(err.response?.data?.detail || 'Ocurrió un error');
+      }
     } finally {
       setLoading(false);
     }

@@ -9,10 +9,13 @@ import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
 import RiskProfileForm from './components/RiskProfileForm';
 import AnimatedBackground from './components/AnimatedBackground';
-import { getAuthToken, removeAuthToken, fetchCurrentUser } from './services/api';
+import { getAuthToken, removeAuthToken, fetchCurrentUser, fetchUserPortfolio } from './services/api';
+import AboutUs from './pages/AboutUs';
+import TermsOfService from './pages/TermsOfService';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 // Importar componentes de admin
 import AdminDashboard from './pages/Admin/AdminDashboard';
-
+// Eliminar referencias a LogsAudit y SupportMessages
 function App() {
   // Estado para controlar si el usuario está autenticado
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(!!getAuthToken());
@@ -22,6 +25,8 @@ function App() {
   const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
   // Estado para almacenar el portafolio del usuario
   const [portfolio, setPortfolio] = useState<any>(null);
+  // Estado para almacenar el nombre del usuario
+  const [userName, setUserName] = useState<string>('');
   // Estado para mostrar carga
   const [isLoading, setIsLoading] = useState<boolean>(false);
   // Estado para saber si el usuario es admin
@@ -32,17 +37,28 @@ function App() {
     if (!isAuthenticated) return;
     setIsLoading(true);
     try {
+      // Primero obtenemos el usuario actual
       const response = await fetchCurrentUser();
       console.log('Respuesta de /auth/me:', response.data); // LOG para depuración
-      if (response.data && response.data.portfolio) {
-        setPortfolio(response.data.portfolio);
+      // Guardar el nombre del usuario
+      if (response.data && response.data.name) {
+        setUserName(response.data.name);
       } else {
-        setPortfolio(null);
+        setUserName('');
       }
       // Verificar si el usuario es admin (ajusta según tu backend)
       const isAdminUser = response.data?.role === 'admin';
       setIsAdmin(isAdminUser);
       console.log('Valor de isAdmin:', isAdminUser); // LOG para depuración
+
+      // Obtener el user_id y luego el portafolio
+      const userId = response.data?._id || response.data?.id || response.data?.user_id;
+      if (userId) {
+        const portfolioRes = await fetchUserPortfolio(userId);
+        setPortfolio(portfolioRes.data);
+      } else {
+        setPortfolio(null);
+      }
     } catch (err: any) {
       console.error("Error fetching user portfolio:", err);
       // Si el error es 401 (Unauthorized), limpiar el token y cerrar sesión
@@ -78,6 +94,12 @@ function App() {
       const me = await fetchCurrentUser();
       const isAdminUser = me.data?.role === 'admin';
       setIsAdmin(isAdminUser); // Actualiza el estado global
+      // Guardar el nombre del usuario
+      if (me.data && me.data.name) {
+        setUserName(me.data.name);
+      } else {
+        setUserName('');
+      }
       if (isAdminUser) {
         navigate('/admin');
         return;
@@ -109,12 +131,14 @@ function App() {
     removeAuthToken();
     setIsAuthenticated(false);
     setPortfolio(null);
+    setUserName('');
     window.location.href = '/';
   };
 
   // Función llamada cuando se genera un portafolio
-  const handlePortfolioGenerated = (newPortfolio: any) => {
-    setPortfolio(newPortfolio);
+  const handlePortfolioGenerated = async (_newPortfolio: any) => {
+    await fetchPortfolio();
+    navigate('/dashboard/overview');
   };
 
   // Función para abrir el modal de autenticación y luego ir al cuestionario
@@ -153,7 +177,7 @@ function App() {
         {/* Rutas protegidas que requieren autenticación */}
         <Route
           path="/dashboard/*"
-          element={isAuthenticated ? <Dashboard onLogout={handleLogout} portfolio={portfolio} isAdmin={isAdmin} /> : null}
+          element={isAuthenticated ? <Dashboard onLogout={handleLogout} portfolio={portfolio} isAdmin={isAdmin} userName={userName} /> : null}
         />
         <Route
           path="/risk-profile-form"
@@ -161,6 +185,10 @@ function App() {
         />
         {/* Rutas de administración, solo para admin */}
         <Route path="/admin/*" element={isAuthenticated && isAdmin ? <AdminDashboard onLogout={handleLogout} /> : null} />
+        {/* Páginas públicas */}
+        <Route path="/about" element={<AboutUs />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
         {/* Otras rutas públicas o de error */}
         <Route path="*" element={null} />
       </Routes>

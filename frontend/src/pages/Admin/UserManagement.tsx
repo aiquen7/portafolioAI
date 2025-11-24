@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from "react";
-import { adminFetchUsers, adminDeleteUser, adminUpdateUser, adminResetPassword, adminUserActivity } from "../../services/api";
+import { adminFetchUsers, adminDeleteUser, adminUpdateUser, adminResetPassword, adminUserActivity, adminBlockUser, adminUnblockUser } from "../../services/api";
 
 const UserManagement = () => {
   const [users, setUsers] = useState<any[]>([]);
@@ -53,7 +53,7 @@ const UserManagement = () => {
   // Editar usuario
   const handleEdit = (user: any) => {
     setEditingUser(user);
-    setEditForm({ name: user.name, email: user.email, role: user.role, status: user.status });
+    setEditForm({ name: user.name, email: user.email, role: user.role });
   };
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -63,7 +63,19 @@ const UserManagement = () => {
   const handleEditSave = async () => {
     if (!editingUser) return;
     try {
-      await adminUpdateUser(editingUser._id, editForm);
+      // Detectar cambio de estado y usar el endpoint correcto
+      if (editForm.status !== editingUser.status) {
+        if (editForm.status === "bloqueado") {
+          await adminBlockUser(editingUser._id);
+        } else if (editForm.status === "activo") {
+          await adminUnblockUser(editingUser._id);
+        }
+      }
+      // Actualizar otros campos si cambiaron
+      const { name, email, role } = editForm;
+      if (name !== editingUser.name || email !== editingUser.email || role !== editingUser.role) {
+        await adminUpdateUser(editingUser._id, { name, email, role });
+      }
       setSuccessMsg("Usuario actualizado correctamente.");
       setEditingUser(null);
       fetchUsers();
@@ -135,16 +147,24 @@ const UserManagement = () => {
           <option value="user">Usuario</option>
           <option value="admin">Admin</option>
         </select>
-        <select
-          className="border rounded px-3 py-2 bg-[var(--color-secondary-bg)] text-[var(--color-text-light)]"
-          value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value)}
-        >
-          <option value="">Todos los estados</option>
-          <option value="activo">Activo</option>
-          <option value="bloqueado">Bloqueado</option>
-        </select>
-        <button className="ml-auto bg-teal-600 text-white px-4 py-2 rounded">Exportar CSV</button>
+       
+        <button className="ml-auto bg-teal-600 text-white px-4 py-2 rounded" onClick={() => {
+          const headers = ["Nombre", "Email", "Rol", "Registro"];
+          const rows = users.map(u => [
+            u.name || u.full_name || u.username || '-',
+            u.email,
+            u.role,
+            u.created_at ? new Date(u.created_at).toLocaleDateString() : '-'
+          ]);
+          const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'usuarios.csv';
+          a.click();
+          URL.revokeObjectURL(url);
+        }}>Exportar CSV</button>
       </div>
       <div className="overflow-x-auto">
         {loading ? (
@@ -157,12 +177,11 @@ const UserManagement = () => {
             <table className="min-w-full bg-[var(--color-card-bg)] text-[var(--color-text-light)] rounded shadow">
               <thead>
                 <tr className="bg-[var(--color-secondary-bg)] text-[var(--color-text-light)]">
-                  <th className="py-2 px-4">Nombre</th>
-                  <th className="py-2 px-4">Email</th>
-                  <th className="py-2 px-4">Rol</th>
-                  <th className="py-2 px-4">Estado</th>
-                  <th className="py-2 px-4">Registro</th>
-                  <th className="py-2 px-4">Acciones</th>
+                  <th className="py-4 px-6 text-center align-middle font-semibold">Nombre</th>
+                  <th className="py-4 px-6 text-center align-middle font-semibold">Email</th>
+                  <th className="py-4 px-6 text-center align-middle font-semibold">Rol</th>
+                  <th className="py-4 px-6 text-center align-middle font-semibold">Registro</th>
+                  <th className="py-4 px-6 text-center align-middle font-semibold">Acciones</th>
                 </tr>
               </thead>
               <tbody>
@@ -171,12 +190,11 @@ const UserManagement = () => {
                 ) : (
                   filteredUsers.map((user, idx) => (
                     <tr key={user._id || idx} className="border-b border-[var(--color-secondary-bg)]">
-                      <td className="py-2 px-4">{user.name || user.full_name || user.username || '-'}</td>
-                      <td className="py-2 px-4">{user.email}</td>
-                      <td className="py-2 px-4">{user.role}</td>
-                      <td className="py-2 px-4">{user.status || (user.is_blocked ? 'bloqueado' : 'activo')}</td>
-                      <td className="py-2 px-4">{user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}</td>
-                      <td className="py-2 px-4 flex gap-2">
+                      <td className="py-4 px-6 text-center align-middle">{user.name || user.full_name || user.username || '-'}</td>
+                      <td className="py-4 px-6 text-center align-middle">{user.email}</td>
+                      <td className="py-4 px-6 text-center align-middle">{user.role}</td>
+                      <td className="py-4 px-6 text-center align-middle">{user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}</td>
+                      <td className="py-4 px-6 text-center align-middle flex gap-2 justify-center">
                         <button className="text-blue-600 hover:underline" onClick={() => handleEdit(user)}>Editar</button>
                         <button className="text-yellow-600 hover:underline" onClick={() => handleReset(user._id)} disabled={resettingId === user._id}>
                           {resettingId === user._id ? "Reseteando..." : "Resetear"}
@@ -215,11 +233,7 @@ const UserManagement = () => {
             </select>
           </div>
           <div className="mb-2">
-            <label className="block mb-1">Estado</label>
-            <select name="status" value={editForm.status} onChange={handleEditChange} className="w-full border rounded px-3 py-2 bg-[var(--color-secondary-bg)] text-[var(--color-text-light)]">
-              <option value="activo">Activo</option>
-              <option value="bloqueado">Bloqueado</option>
-            </select>
+            {/* Estado eliminado del formulario de edición */}
           </div>
           <div className="flex gap-2 mt-4">
             <button className="bg-teal-600 text-white px-4 py-2 rounded" onClick={handleEditSave}>Guardar</button>

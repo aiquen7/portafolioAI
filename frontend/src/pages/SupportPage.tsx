@@ -125,11 +125,11 @@ const SupportPage: React.FC = () => {
           <div className="flex items-center justify-center gap-6 flex-wrap">
             <a href="#" className="bg-gray-700 px-6 py-3 rounded-full border border-gray-600 hover:border-teal-500 transition-all flex items-center gap-2">
               <i className="fas fa-phone text-teal-400"></i>
-              <span className="font-bold">+1 (800) 123-4567</span>
+              <span className="font-bold">+54 (800) 123-4567</span>
             </a>
             <a href="#" className="bg-gray-700 px-6 py-3 rounded-full border border-gray-600 hover:border-teal-500 transition-all flex items-center gap-2">
               <i className="fas fa-envelope text-teal-400"></i>
-              <span className="font-bold">support@portafolioai.com</span>
+              <span className="font-bold">soporte@portafolioai.com</span>
             </a>
             {/* Botón de 'Chat en vivo' eliminado */}
           </div>

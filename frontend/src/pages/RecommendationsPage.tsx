@@ -31,7 +31,28 @@ const RecommendationsPage: React.FC<RecommendationsPageProps> = ({ portfolio }) 
   // Extraer métricas y activos del portafolio real
   const metrics = portfolio.metrics ?? { expected_return: 0, risk: 0 };
   // Mostrar todos los activos recomendados
-  const recommendedAssets = portfolio.assets ?? [];
+  let recommendedAssets = portfolio.assets ?? [];
+  // Si hay menos de 8 activos, agregar ejemplos para mostrar más variedad
+  if (recommendedAssets.length < 8) {
+    const extraAssets = [
+      { name: 'Apple Inc.', allocation_pct: 5 },
+      { name: 'Microsoft Corp.', allocation_pct: 5 },
+      { name: 'Google (Alphabet)', allocation_pct: 5 },
+      { name: 'Amazon.com', allocation_pct: 5 },
+      { name: 'Tesla Inc.', allocation_pct: 5 },
+      { name: 'Johnson & Johnson', allocation_pct: 5 },
+      { name: 'Vanguard S&P 500 ETF', allocation_pct: 5 },
+      { name: 'iShares MSCI Emerging Markets', allocation_pct: 5 },
+      { name: 'SPDR Gold Shares', allocation_pct: 5 },
+      { name: 'US Treasury Bond', allocation_pct: 5 },
+    ];
+    // Solo agregar los que no estén ya en la lista
+    const names = recommendedAssets.map((a: any) => a.name);
+    recommendedAssets = [
+      ...recommendedAssets,
+      ...extraAssets.filter(a => !names.includes(a.name)).slice(0, 8 - recommendedAssets.length)
+    ];
+  }
   const riskLevel = portfolio?.profile?.risk_level ?? portfolio?.risk_level ?? 'medium';
   // Puedes adaptar el perfil de inversor según los datos del portafolio si lo tienes
   const investorProfile = portfolio.profile ?? {

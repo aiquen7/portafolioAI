@@ -24,8 +24,10 @@ const RiskProfileForm: React.FC<RiskProfileFormProps> = ({ onPortfolioGenerated 
     {
       id: "country",
       question: "¿En qué país resides actualmente?",
-      type: "text",
-      placeholder: "Ej: Argentina"
+      type: "select",
+      options: [
+        "Argentina", "Brasil", "Chile", "Uruguay", "Paraguay", "Bolivia", "Perú", "Ecuador", "Colombia", "Venezuela", "México", "Estados Unidos", "Canadá", "España", "Francia", "Alemania", "Italia", "Reino Unido", "China", "Japón", "India", "Australia", "Sudáfrica", "Rusia", "Turquía", "Egipto", "Arabia Saudita", "Israel", "Corea del Sur", "Nueva Zelanda", "Portugal", "Noruega", "Suecia", "Finlandia", "Dinamarca", "Suiza", "Bélgica", "Países Bajos", "Polonia", "Grecia", "Irlanda", "Hungría", "República Checa", "Austria", "Rumania", "Ucrania", "Tailandia", "Malasia", "Singapur", "Indonesia", "Filipinas", "Vietnam", "Pakistán", "Bangladesh", "Nigeria", "Kenya", "Marruecos", "Argelia", "Otros"
+      ]
     },
     {
       id: "experience_level",
@@ -216,21 +218,20 @@ const RiskProfileForm: React.FC<RiskProfileFormProps> = ({ onPortfolioGenerated 
               {currentQuestion + 1}. {currentQ.question}
             </label>
             {
-              currentQ.type === "text" && (
-                <input
-                  type="text"
-                  className="mt-1 block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 text-lg"
-                  placeholder={currentQ.placeholder}
+              currentQ.type === "select" && (
+                <select
+                  className="mt-1 block w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200 text-lg"
                   value={answers[currentQ.id] || ''}
                   onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (answers[currentQ.id]) handleNext();
-                    }
-                  }}
                   required
-                />
+                >
+                  <option value="" disabled>Selecciona tu país</option>
+                  {currentQ.options?.map((option: any) => (
+                    typeof option === 'string'
+                      ? <option key={option} value={option}>{option}</option>
+                      : <option key={option.value} value={option.value}>{option.label}</option>
+                  ))}
+                </select>
               )
             }
             {
@@ -256,27 +257,53 @@ const RiskProfileForm: React.FC<RiskProfileFormProps> = ({ onPortfolioGenerated 
             {
               currentQ.type === "radio" && (
                 <div className="mt-2 space-y-3">
-                  {currentQ.options?.map(option => (
-                    <label 
-                      key={option.value} 
-                      className={`flex items-center p-4 border rounded-lg cursor-pointer transition duration-200 ${
-                        answers[currentQ.id] === option.value
-                          ? 'bg-teal-600/20 border-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.3)]'
-                          : 'bg-gray-700 border-gray-600 hover:bg-gray-600 hover:border-gray-500'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name={currentQ.id}
-                        value={option.value}
-                        checked={answers[currentQ.id] === option.value}
-                        onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
-                        className="form-radio h-5 w-5 text-teal-500 border-gray-500 focus:ring-teal-500 focus:ring-offset-gray-800"
-                        required
-                      />
-                      <span className="ml-3 text-lg text-gray-200">{option.label}</span>
-                    </label>
-                  ))}
+                  {currentQ.options?.map(option => {
+                    if (typeof option === 'string') {
+                      return (
+                        <label 
+                          key={option}
+                          className={`flex items-center p-4 border rounded-lg cursor-pointer transition duration-200 ${
+                            answers[currentQ.id] === option
+                              ? 'bg-teal-600/20 border-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.3)]'
+                              : 'bg-gray-700 border-gray-600 hover:bg-gray-600 hover:border-gray-500'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name={currentQ.id}
+                            value={option}
+                            checked={answers[currentQ.id] === option}
+                            onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
+                            className="form-radio h-5 w-5 text-teal-500 border-gray-500 focus:ring-teal-500 focus:ring-offset-gray-800"
+                            required
+                          />
+                          <span className="ml-3 text-lg text-gray-200">{option}</span>
+                        </label>
+                      );
+                    } else {
+                      return (
+                        <label 
+                          key={option.value}
+                          className={`flex items-center p-4 border rounded-lg cursor-pointer transition duration-200 ${
+                            answers[currentQ.id] === option.value
+                              ? 'bg-teal-600/20 border-teal-500 shadow-[0_0_10px_rgba(20,184,166,0.3)]'
+                              : 'bg-gray-700 border-gray-600 hover:bg-gray-600 hover:border-gray-500'
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name={currentQ.id}
+                            value={option.value}
+                            checked={answers[currentQ.id] === option.value}
+                            onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
+                            className="form-radio h-5 w-5 text-teal-500 border-gray-500 focus:ring-teal-500 focus:ring-offset-gray-800"
+                            required
+                          />
+                          <span className="ml-3 text-lg text-gray-200">{option.label}</span>
+                        </label>
+                      );
+                    }
+                  })}
                 </div>
               )
             }

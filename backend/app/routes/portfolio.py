@@ -58,6 +58,14 @@ async def get_user_portfolio(user_id: str, current_user: Annotated[User, Depends
     
     portfolio = db.portfolios.find_one({"user_id": user_id})
     if portfolio:
+        # Convert ObjectId fields to string for serialization
+        if "_id" in portfolio:
+            portfolio["_id"] = str(portfolio["_id"])
+        # Also convert asset IDs if present
+        if "assets" in portfolio and isinstance(portfolio["assets"], list):
+            for asset in portfolio["assets"]:
+                if isinstance(asset, dict) and "_id" in asset and isinstance(asset["_id"], ObjectId):
+                    asset["_id"] = str(asset["_id"])
         return portfolio
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found")
 

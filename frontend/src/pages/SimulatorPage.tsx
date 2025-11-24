@@ -276,7 +276,7 @@ const SimulatorPage: React.FC<SimulatorPageProps> = ({ portfolio }) => {
             </div>
 
           {/* Selector de Tipo de Activo */}
-          <div className="mb-6 p-4 bg-gray-800 rounded-xl border border-gray-600">
+          <div className="mb-6 p-4 bg-gray-800 rounded-xl border border-gray-600 max-h-64 overflow-y-auto">
             <label className="block text-sm font-bold text-gray-200 mb-4 flex items-center gap-2">
               <i className="fas fa-layer-group text-cyan-400"></i>
               Tipo de Activo a Simular

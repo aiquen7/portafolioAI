@@ -13,13 +13,26 @@ async def list_portfolios(current_user: User = Depends(require_admin)):
     portfolios = list(db.portfolios.find())
     for p in portfolios:
         p["_id"] = str(p["_id"])
+        # Fecha de generación
         if "generated_at" in p:
-            # Si es tipo datetime, convertir a string ISO
             if hasattr(p["generated_at"], "isoformat"):
                 p["generated_at"] = p["generated_at"].isoformat()
-            # Si viene como dict tipo {'$date': ...}
             elif isinstance(p["generated_at"], dict) and "$date" in p["generated_at"]:
                 p["generated_at"] = p["generated_at"]["$date"]
+            elif isinstance(p["generated_at"], str):
+                p["generated_at"] = p["generated_at"]
+            else:
+                p["generated_at"] = "-"
+        else:
+            p["generated_at"] = "-"
+        # Perfil de riesgo
+        if "metrics" in p and isinstance(p["metrics"], dict):
+            p["risk_level"] = p["metrics"].get("risk_level") or p["metrics"].get("risk") or "-"
+        else:
+            p["risk_level"] = "-"
+        # Email del usuario
+        user = db.users.find_one({"_id": ObjectId(p["user_id"])}) if ObjectId.is_valid(p["user_id"]) else db.users.find_one({"_id": p["user_id"]})
+        p["user_email"] = user["email"] if user and "email" in user else "-"
     return portfolios
 
 @router.get("/{portfolio_id}", response_description="Get portfolio by ID")

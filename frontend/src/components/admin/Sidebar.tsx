@@ -29,28 +29,13 @@ const Sidebar: React.FC<SidebarProps> = ({ onLogout, activeSection, onSectionCha
             </li>
             <li>
               <button 
-                onClick={() => onSectionChange('content')} 
-                className={`w-full text-left flex items-center gap-3 px-6 py-3 rounded-lg font-medium transition-colors ${activeSection === 'content' ? 'bg-[var(--color-secondary-bg)] text-[var(--color-accent-teal)]' : 'text-[var(--color-text-light)] hover:bg-[var(--color-secondary-bg)]'}`}
-              >
-                Contenido Educativo & Noticias
-              </button>
-            </li>
-            <li>
-              <button 
                 onClick={() => onSectionChange('support')} 
                 className={`w-full text-left flex items-center gap-3 px-6 py-3 rounded-lg font-medium transition-colors ${activeSection === 'support' ? 'bg-[var(--color-secondary-bg)] text-[var(--color-accent-teal)]' : 'text-[var(--color-text-light)] hover:bg-[var(--color-secondary-bg)]'}`}
               >
                 Soporte / Mensajes
               </button>
             </li>
-            <li>
-              <button 
-                onClick={() => onSectionChange('logs')} 
-                className={`w-full text-left flex items-center gap-3 px-6 py-3 rounded-lg font-medium transition-colors ${activeSection === 'logs' ? 'bg-[var(--color-secondary-bg)] text-[var(--color-accent-teal)]' : 'text-[var(--color-text-light)] hover:bg-[var(--color-secondary-bg)]'}`}
-              >
-                Logs y Auditoría
-              </button>
-            </li>
+            {/* Logs y Auditoría eliminado */}
           </ul>
         </nav>
       </div>

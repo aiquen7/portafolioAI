@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Sidebar from '../components/Sidebar';
+import { Sidebar } from '../components/Sidebar';
 import DashboardOverview from '../components/DashboardOverview';
 import RecommendationsPage from './RecommendationsPage';
 import MyPortfolioPage from './MyPortfolioPage';
@@ -13,9 +13,10 @@ interface DashboardProps {
   onLogout: () => void;
   portfolio: any;
   isAdmin?: boolean;
+  userName?: string;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ onLogout, portfolio, isAdmin }) => {
+const Dashboard: React.FC<DashboardProps> = ({ onLogout, portfolio, isAdmin, userName }) => {
   const location = useLocation();
   const [activePage, setActivePage] = useState<string>(
     location.pathname.split('/')[2] || 'overview'
@@ -43,7 +44,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onLogout, portfolio, isAdmin }) =
       </div>
 
       {/* Sidebar */}
-      <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={onLogout} isAdmin={isAdmin} />
+      <Sidebar activePage={activePage} setActivePage={setActivePage} onLogout={onLogout} isAdmin={isAdmin} userName={userName} />
       
       {/* Main Content con margen para el Sidebar */}
       <div className="flex-1 flex flex-col ml-72 relative z-10">

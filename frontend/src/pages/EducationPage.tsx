@@ -36,6 +36,8 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, onClick }) => (
 );
 
 const EducationPage: React.FC = () => {
+    // Función para cerrar el modal
+    const closeModal = () => setSelectedArticle(null);
   const [filter, setFilter] = useState('all');
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
   // const [isChatOpen, setIsChatOpen] = useState(false);
@@ -436,6 +438,32 @@ const EducationPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-800 text-white pt-20 pb-24 px-4 sm:px-6 lg:px-8">
+      {/* Modal para mostrar el artículo completo */}
+      {selectedArticle && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Fondo difuminado y animación (solo tonos oscuros y teal) */}
+          <div className="absolute inset-0 bg-gradient-to-br from-teal-900/80 via-black/90 to-teal-800/80 backdrop-blur-sm animate-fade-in"></div>
+          {/* Modal principal */}
+          <div className="relative z-10 max-w-2xl w-full mx-4">
+            <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-2xl shadow-2xl border-2 border-teal-500 p-10 pt-16 animate-fade-in flex flex-col" style={{ maxHeight: '80vh', overflowY: 'auto' }}>
+              <button
+                onClick={closeModal}
+                className="absolute top-6 right-6 bg-teal-500 hover:bg-teal-600 text-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                aria-label="Cerrar"
+              >
+                <span className="text-2xl font-bold">&times;</span>
+              </button>
+              <h2 className="text-5xl font-black mb-8 text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-400 drop-shadow-2xl text-center tracking-tight">
+                {selectedArticle.title}
+              </h2>
+              <div className="prose prose-invert max-w-none text-gray-100 text-xl leading-relaxed">
+                {/* Renderizar el contenido con estilos mejorados para subtítulos */}
+                <div dangerouslySetInnerHTML={{ __html: selectedArticle.fullContent.replace(/<h2>/g, '<h2 class=\"text-3xl font-bold text-teal-300 mb-4 mt-8\">').replace(/<h3>/g, '<h3 class=\"text-2xl font-semibold text-cyan-300 mb-2 mt-6\">').replace(/<ul>/g, '<ul class=\"list-disc ml-6 mb-4\">').replace(/<li>/g, '<li class=\"mb-2\">') }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="max-w-7xl mx-auto">
         {/* Header with decorative elements */}
         <div className="text-center mb-12 relative">

@@ -1,3 +1,5 @@
+export const adminReplySupportMessage = (messageId: string, reply: string) =>
+  api.patch(`/admin/support/messages/${messageId}/reply`, reply, { headers: { 'Content-Type': 'application/json' } });
 // Recuperación de contraseña
 export const forgotPasswordRequest = (email: string) => api.post('/auth/forgot-password', { email });
 // Regenerar portafolio (admin)
@@ -108,10 +110,15 @@ export const adminFetchContent = () => api.get('/admin/content');
 export const adminCreateContent = (data: any) => api.post('/admin/content', data);
 export const adminUpdateContent = (contentId: string, data: any) => api.put(`/admin/content/${contentId}`, data);
 export const adminDeleteContent = (contentId: string) => api.delete(`/admin/content/${contentId}`);
+export const adminAssignSupportMessage = (messageId: string, adminId: string) =>
+  api.patch(`/admin/support/messages/${messageId}/assign`, adminId, { headers: { 'Content-Type': 'application/json' } });
 
 // Soporte
 export const adminFetchSupportMessages = () => api.get('/admin/support/messages');
 export const adminDeleteSupportMessage = (messageId: string) => api.delete(`/admin/support/messages/${messageId}`);
+
+export const adminMarkSupportResolved = (messageId: string) =>
+  api.patch(`/admin/support/messages/${messageId}/resolve`);
 
 // Configuración
 export const adminFetchConfig = () => api.get('/admin/config');

@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from app.routes import auth, portfolio, profile, stocks
-from app.routes import admin_users, admin_portfolios, admin_simulations, admin_content, admin_support, admin_logs
+from app.routes import admin_users, admin_portfolios, admin_support
 
 app = FastAPI(
     title="PortafolioAI API",
@@ -27,11 +27,9 @@ app.include_router(portfolio.router, prefix="/api", tags=["Portafolio"])
 app.include_router(stocks.router, prefix="/api", tags=["Datos de Acciones"])
 app.include_router(admin_users.router, prefix="/api", tags=["Admin Usuarios"])
 app.include_router(admin_portfolios.router, prefix="/api", tags=["Admin Portafolios"])
-app.include_router(admin_simulations.router, prefix="/api", tags=["Admin Simulaciones"])
-app.include_router(admin_content.router, prefix="/api", tags=["Admin Contenido"])
 app.include_router(admin_support.router, prefix="/api", tags=["Admin Soporte"])
 ## app.include_router(admin_config.router, prefix="/api", tags=["Admin Configuración"])
-app.include_router(admin_logs.router, prefix="/api", tags=["Admin Logs"])
+## app.include_router(admin_logs.router, prefix="/api", tags=["Admin Logs"])
 
 @app.get("/test", tags=["Test"])
 async def test_endpoint():
