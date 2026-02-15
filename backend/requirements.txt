@@ -11,3 +11,7 @@ yfinance
 PyPortfolioOpt
 pydantic-extra-types
 email-validator
+typing_extensions
+google-auth
+google-auth-oauthlib
+requests

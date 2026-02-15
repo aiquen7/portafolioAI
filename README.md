@@ -129,6 +129,58 @@ Antes de comenzar, asegúrate de tener instalado lo siguiente:
 
 El proyecto está configurado para usar la API de Google Gemini (a través de `@google/genai` en el frontend y `gemini_service.py` en el backend). Si no proporcionas una `API_KEY_GEMINI` en tu archivo `.env`, el `gemini_service.py` del backend utilizará un servicio mock para generar respuestas plausibles, permitiendo el desarrollo y la prueba de la interfaz de usuario sin una clave de API real.
 
+6. Frontend — Google Identity Services
+
+- Añade a `frontend/.env` la variable `VITE_GOOGLE_CLIENT_ID` con tu Client ID de Google:
+
+```dotenv
+VITE_GOOGLE_CLIENT_ID=tu_google_client_id
+```
+
+- El componente `frontend/src/components/GoogleLoginButton.tsx` usa Google Identity Services para obtener el `id_token` directamente en el cliente y lo envía a `POST /api/auth/google/verify` para que el backend valide la firma y cree/actualice el usuario.
+
 ## Comentarios y Claridad del Código
 
 Se han añadido comentarios a las funciones clave del backend y se añadirán a los componentes del frontend para explicar su propósito, entradas y salidas, facilitando la comprensión y el mantenimiento del código.
+
+### Inicio de sesión con Google (OAuth2)
+
+Esta rama incluye soporte para iniciar sesión con Google (obtener perfil: `openid email profile`). Pasos rápidos para configurar y probar localmente:
+
+1. Crear credenciales en Google Cloud Console:
+    - Ve a https://console.cloud.google.com/apis/credentials
+    - Crea un OAuth 2.0 Client ID (tipo: Web application)
+    - Añade `http://localhost:8000/api/auth/google/callback` como Authorized redirect URI
+    - Copia `CLIENT_ID` y `CLIENT_SECRET`
+
+2. Actualizar variables de entorno (archivo `backend/.env` basado en `.env.example`):
+
+```dotenv
+GOOGLE_CLIENT_ID=tu_google_client_id
+GOOGLE_CLIENT_SECRET=tu_google_client_secret
+GOOGLE_REDIRECT_URI=http://localhost:8000/api/auth/google/callback
+FRONTEND_URL=http://localhost:5173
+```
+
+3. Levantar servicios:
+
+```powershell
+# Backend (desde carpeta backend)
+uvicorn app.main:app --reload --port 8000
+
+# Frontend (desde carpeta frontend)
+npm install
+npm run dev
+```
+
+4. Probar flujo:
+    - Abrir frontend en `http://localhost:5173`
+    - Abrir modal de autenticación y clicar "Iniciar sesión con Google"
+    - Completar el flujo de Google; tras aceptar serás redirigido a `/auth/callback?token=...` y el token será guardado en `localStorage` como `token`.
+    - El backend creará/actualizará el documento del usuario en la colección `users` con `email`, `name`, `picture`, `google_id`.
+    - Ahora puedes usar rutas protegidas con el JWT.
+
+5. Notas de seguridad:
+    - No expongas `GOOGLE_CLIENT_SECRET` en el frontend.
+    - Valida siempre `state` y `id_token`.
+    - Guarda `refresh_token` solo si realmente lo necesitas y guárdalo cifrado en backend.

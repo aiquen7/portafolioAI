@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { loginUser, registerUser } from '../services/api';
 import { FaUser, FaEnvelope, FaLock, FaTimes } from 'react-icons/fa';
+import GoogleSignInButton from './GoogleSignInButton';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -114,92 +115,46 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-2 sm:px-0"
+      className="fixed inset-0 z-50 flex items-center justify-center px-2 sm:px-0 bg-black/30 backdrop-blur-sm"
       tabIndex={-1}
       aria-modal="true"
       role="dialog"
       ref={modalRef}
     >
-      {/* Fondo de circuitos tecnológicos */}
-      <div className="absolute inset-0 bg-[#0a0e14]">
-        {/* Gradiente base */}
-        <div className="absolute inset-0 bg-gradient-to-br from-teal-900/40 via-[#0a0e14] to-amber-900/30"></div>
-        
-        {/* Grid de circuitos */}
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(20,184,166,0.15)_1px,transparent_1px),linear-gradient(90deg,rgba(20,184,166,0.15)_1px,transparent_1px)] bg-[size:80px_80px]"></div>
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(245,158,11,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(245,158,11,0.08)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-        </div>
-        
-        {/* Puntos de conexión animados */}
-        <div className="absolute top-32 left-32 w-2 h-2 bg-teal-400 rounded-full animate-pulse-slow shadow-[0_0_15px_rgba(20,184,166,0.6)]"></div>
-        <div className="absolute top-64 right-40 w-2 h-2 bg-amber-400 rounded-full animate-pulse-slower shadow-[0_0_15px_rgba(245,158,11,0.6)]"></div>
-        <div className="absolute bottom-40 left-48 w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_15px_rgba(6,182,212,0.6)]"></div>
-        <div className="absolute bottom-32 right-32 w-2 h-2 bg-teal-400 rounded-full animate-pulse-slow shadow-[0_0_15px_rgba(20,184,166,0.6)]"></div>
-        
-        {/* Líneas de circuito SVG */}
-        <svg className="absolute inset-0 w-full h-full opacity-40" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="circuitGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgba(20,184,166,0)" />
-              <stop offset="50%" stopColor="rgba(20,184,166,0.4)" />
-              <stop offset="100%" stopColor="rgba(20,184,166,0)" />
-            </linearGradient>
-            <linearGradient id="circuitGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="rgba(245,158,11,0)" />
-              <stop offset="50%" stopColor="rgba(245,158,11,0.3)" />
-              <stop offset="100%" stopColor="rgba(245,158,11,0)" />
-            </linearGradient>
-          </defs>
-          <path d="M 150 250 L 500 250 L 500 450 L 850 450" stroke="url(#circuitGrad1)" strokeWidth="2" fill="none" />
-          <path d="M 950 150 L 700 350 L 400 350 L 150 650" stroke="url(#circuitGrad2)" strokeWidth="2" fill="none" />
-          <path d="M 1100 550 L 850 650 L 500 650 L 250 850" stroke="url(#circuitGrad1)" strokeWidth="2" fill="none" />
-          <circle cx="500" cy="250" r="4" fill="#14b8a6" opacity="0.6" />
-          <circle cx="850" cy="450" r="4" fill="#f59e0b" opacity="0.6" />
-          <circle cx="400" cy="350" r="4" fill="#06b6d4" opacity="0.6" />
-        </svg>
-        
-        {/* Orbes de luz difusa */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl"></div>
-        
-        {/* Overlay para mejor contraste del modal */}
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-      </div>
-
-      {/* Modal Card */}
-      <div className="relative bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md sm:max-w-lg px-4 sm:px-8 py-8 sm:py-10 animate-fade-in border border-teal-500/30">
+      {/* Modal Card - Professional Style */}
+      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-md px-6 sm:px-8 py-8 animate-fade-in border border-gray-200">
         {/* Botón cerrar */}
         <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-teal-400 text-2xl focus:outline-none transition-colors duration-200"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-2xl focus:outline-none transition-colors duration-200"
           onClick={onClose}
           aria-label="Cerrar"
         >
           <FaTimes />
         </button>
+
         {/* Título */}
-        <h2 className="text-3xl font-bold text-white mb-7 text-center tracking-tight">
-          {isRegister ? 'Crear cuenta' : 'Iniciar sesión'}
+        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+          {isRegister ? 'Crear Cuenta' : 'Iniciar Sesión'}
         </h2>
 
         {/* Mensaje de éxito tras registro */}
         {registerSuccess && (
-          <div className="mb-4 p-3 bg-teal-900/50 text-teal-300 rounded-lg text-center text-sm border border-teal-500/30">
-            Registro exitoso. ¡Bienvenido!
+          <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-center text-sm border border-green-200">
+            ✓ Registro exitoso. ¡Bienvenido!
           </div>
         )}
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="space-y-5" autoComplete="off">
+        <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
           {isRegister && (
             <div>
-              <label htmlFor="name" className="block text-xs font-semibold text-gray-300 mb-1">Nombre</label>
+              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400"><FaUser /></span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-900"><FaUser size={16} /></span>
                 <input
                   type="text"
                   id="name"
-                  className={`pl-9 pr-3 py-2 w-full bg-gray-800/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-white placeholder-gray-500 ${touched.name && !validateName(name) ? 'border-red-400' : 'border-gray-700'}`}
+                  className={`pl-9 pr-3 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 text-gray-900 placeholder-gray-500 ${touched.name && !validateName(name) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'}`}
                   value={name}
                   onChange={e => { setName(e.target.value); setTouched(t => ({ ...t, name: true })); }}
                   required
@@ -209,18 +164,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
                 />
               </div>
               {touched.name && !validateName(name) && (
-                <span className="text-xs text-red-400">El nombre debe tener al menos 2 caracteres</span>
+                <span className="text-xs text-red-600 mt-1 block">El nombre debe tener al menos 2 caracteres</span>
               )}
             </div>
           )}
+
           <div>
-            <label htmlFor="email" className="block text-xs font-semibold text-gray-300 mb-1">Correo electrónico</label>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">Correo Electrónico</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400"><FaEnvelope /></span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-900"><FaEnvelope size={16} /></span>
               <input
                 type="email"
                 id="email"
-                className={`pl-9 pr-3 py-2 w-full bg-gray-800/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-white placeholder-gray-500 ${touched.email && !validateEmail(email) ? 'border-red-400' : 'border-gray-700'}`}
+                className={`pl-9 pr-3 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 text-gray-900 placeholder-gray-500 ${touched.email && !validateEmail(email) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'}`}
                 value={email}
                 onChange={e => { setEmail(e.target.value); setTouched(t => ({ ...t, email: true })); }}
                 required
@@ -229,17 +185,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
               />
             </div>
             {touched.email && !validateEmail(email) && (
-              <span className="text-xs text-red-400">Correo electrónico inválido</span>
+              <span className="text-xs text-red-600 mt-1 block">Correo electrónico inválido</span>
             )}
           </div>
+
           <div>
-            <label htmlFor="password" className="block text-xs font-semibold text-gray-300 mb-1">Contraseña</label>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">Contraseña</label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-teal-400"><FaLock /></span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-900"><FaLock size={16} /></span>
               <input
                 type="password"
                 id="password"
-                className={`pl-9 pr-3 py-2 w-full bg-gray-800/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-white placeholder-gray-500 ${touched.password && !validatePassword(password) ? 'border-red-400' : 'border-gray-700'}`}
+                className={`pl-9 pr-3 py-2 w-full border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-900 text-gray-900 placeholder-gray-500 ${touched.password && !validatePassword(password) ? 'border-red-400 bg-red-50' : 'border-gray-300 bg-white'}`}
                 value={password}
                 onChange={e => { setPassword(e.target.value); setTouched(t => ({ ...t, password: true })); }}
                 required
@@ -248,76 +205,83 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
               />
             </div>
             {touched.password && !validatePassword(password) && (
-              <span className="text-xs text-red-400">La contraseña debe tener al menos 6 caracteres</span>
+              <span className="text-xs text-red-600 mt-1 block">La contraseña debe tener al menos 6 caracteres</span>
             )}
             {!isRegister && (
-              <div className="text-right mt-1">
+              <div className="text-right mt-2">
                 <button
                   type="button"
-                  className="text-xs text-teal-400 hover:text-teal-300 underline"
+                  className="text-xs text-blue-900 hover:text-blue-600 font-medium underline"
                   onClick={() => setShowForgot(true)}
                 >
                   ¿Olvidaste tu contraseña?
                 </button>
               </div>
             )}
-                {/* Modal de recuperación de contraseña */}
-                {showForgot && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/70 z-50">
-                    <div className="bg-gray-900 rounded-xl p-8 w-full max-w-sm shadow-xl border border-teal-500/30 relative">
-                      <button
-                        className="absolute top-3 right-3 text-gray-400 hover:text-teal-400 text-xl"
-                        onClick={() => { setShowForgot(false); setForgotEmail(''); setForgotSent(false); setForgotError(null); }}
-                        aria-label="Cerrar"
-                      >
-                        <FaTimes />
-                      </button>
-                      <h3 className="text-xl font-bold text-white mb-4 text-center">Recuperar contraseña</h3>
-                      <form onSubmit={handleForgotSubmit} className="space-y-4">
-                        <input
-                          type="email"
-                          className="w-full px-4 py-2 rounded-lg bg-gray-800 border border-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-teal-500"
-                          placeholder="Correo electrónico"
-                          value={forgotEmail}
-                          onChange={e => setForgotEmail(e.target.value)}
-                          required
-                        />
-                        {forgotError && <p className="text-red-400 text-xs text-center">{forgotError}</p>}
-                        <button
-                          type="submit"
-                          className="w-full bg-teal-600 text-white font-bold py-2 rounded-lg hover:bg-teal-700 transition duration-200"
-                        >
-                          Enviar instrucciones
-                        </button>
-                        {forgotSent && <p className="text-teal-400 text-xs text-center mt-2">Si el correo existe, recibirás instrucciones para recuperar tu contraseña.</p>}
-                      </form>
-                    </div>
-                  </div>
-                )}
+
+            {/* Modal de recuperación de contraseña */}
+            {showForgot && (
+              <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-lg border border-gray-200 relative">
+                  <button
+                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-xl"
+                    onClick={() => { setShowForgot(false); setForgotEmail(''); setForgotSent(false); setForgotError(null); }}
+                    aria-label="Cerrar"
+                  >
+                    <FaTimes />
+                  </button>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">Recuperar Contraseña</h3>
+                  <form onSubmit={handleForgotSubmit} className="space-y-4">
+                    <input
+                      type="email"
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-900 placeholder-gray-500"
+                      placeholder="Correo electrónico"
+                      value={forgotEmail}
+                      onChange={e => setForgotEmail(e.target.value)}
+                      required
+                    />
+                    {forgotError && <p className="text-red-600 text-xs text-center">{forgotError}</p>}
+                    <button
+                      type="submit"
+                      className="w-full bg-blue-900 text-white font-medium py-2 rounded-lg hover:bg-blue-800 transition duration-200"
+                    >
+                      Enviar Instrucciones
+                    </button>
+                    {forgotSent && <p className="text-green-700 text-xs text-center mt-2 bg-green-50 p-2 rounded">Si el correo existe, recibirás instrucciones para recuperar tu contraseña.</p>}
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
-          {error && <p className="text-red-400 text-xs text-center bg-red-900/20 border border-red-500/30 rounded-lg py-2">{error}</p>}
+
+          {error && <p className="text-red-600 text-xs text-center bg-red-50 border border-red-200 rounded-lg py-2">{error}</p>}
+
           <button
             type="submit"
-            className="w-full bg-teal-600 text-white font-bold py-3 rounded-lg hover:bg-teal-700 transition duration-200 disabled:opacity-50 shadow-lg shadow-teal-900/50 text-base sm:text-lg"
+            className="w-full bg-blue-900 text-white font-bold py-2 rounded-lg hover:bg-blue-800 transition duration-200 disabled:opacity-50 text-base mt-6"
             disabled={loading}
           >
             {loading ? 'Cargando...' : (isRegister ? 'Registrarse' : 'Entrar')}
           </button>
         </form>
 
+        {/* Botón de inicio con Google */}
+        <div className="mt-4">
+          <GoogleSignInButton variant="modal" onSuccess={() => onLoginSuccess('login')} />
+        </div>
+
         {/* Alternar login/registro */}
-        <div className="mt-7 text-center">
-          <p className="text-xs text-gray-400">
+        <div className="mt-6 text-center border-t border-gray-200 pt-6">
+          <p className="text-sm text-gray-600">
             {isRegister ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}{' '}
             <button
               onClick={() => setIsRegister(!isRegister)}
-              className="text-teal-400 hover:text-teal-300 font-semibold underline"
+              className="text-blue-900 hover:text-blue-600 font-semibold underline"
             >
               {isRegister ? 'Inicia sesión' : 'Regístrate'}
             </button>
           </p>
         </div>
-
       </div>
     </div>
   );

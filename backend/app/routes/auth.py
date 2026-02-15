@@ -50,8 +50,13 @@ async def forgot_password(data: ForgotPasswordRequest, background_tasks: Backgro
     return {"message": "Si el correo existe, recibirás instrucciones."}
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.responses import RedirectResponse
 
-from typing import Annotated, Dict
+from typing import Dict
+try:
+    from typing import Annotated
+except ImportError:
+    from typing_extensions import Annotated
 from datetime import datetime
 from pydantic import BaseModel, EmailStr
 
@@ -157,3 +162,131 @@ async def get_me(current_user: Annotated[User, Depends(get_current_user)]):
     else:
         user_dict["portfolio"] = None
     return user_dict
+
+
+# --- Google OAuth2 helpers and verification using google-auth ---
+import os
+import requests
+import secrets
+from urllib.parse import urlencode
+from datetime import datetime
+try:
+    from google.oauth2 import id_token as google_id_token
+    from google.auth.transport import requests as google_requests
+    GOOGLE_AUTH_AVAILABLE = True
+except Exception:
+    google_id_token = None
+    google_requests = None
+    GOOGLE_AUTH_AVAILABLE = False
+
+
+@router.post("/google/verify", response_description="Verify Google id_token and create/update user")
+async def google_verify(payload: dict = Body(...)):
+    if not GOOGLE_AUTH_AVAILABLE:
+        raise HTTPException(status_code=500, detail="google-auth no está instalado en el entorno. Ejecuta 'pip install -r requirements.txt' en el backend.")
+    idtoken = payload.get("id_token")
+    if not idtoken:
+        raise HTTPException(status_code=400, detail="Missing id_token")
+    try:
+        # Verify the token and get claims
+        request_adapter = google_requests.Request()
+        info = google_id_token.verify_oauth2_token(idtoken, request_adapter, os.getenv("GOOGLE_CLIENT_ID"))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid id_token: {e}")
+
+    google_id = info.get("sub")
+    email = info.get("email")
+    name = info.get("name") or email
+    picture = info.get("picture")
+
+    # Buscar usuario por google_id o email
+    user = db.users.find_one({"google_id": google_id}) or db.users.find_one({"email": email})
+    now = datetime.utcnow()
+    if user:
+        db.users.update_one({"_id": user["_id"]}, {"$set": {"email": email, "name": name, "picture": picture, "google_id": google_id, "updated_at": now}})
+        user_id = user["_id"]
+        role = user.get("role", "user")
+    else:
+        res = db.users.insert_one({"email": email, "name": name, "picture": picture, "google_id": google_id, "role": "user", "created_at": now})
+        user_id = res.inserted_id
+        role = "user"
+
+    app_token = signJWT(str(user_id), role)
+    return app_token
+
+
+# Backwards-compatible redirect flow (kept for non-SPA clients)
+@router.get("/google/login", response_description="Redirect to Google OAuth2")
+async def google_login():
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    redirect_uri = os.getenv("GOOGLE_REDIRECT_URI")
+    if not client_id or not redirect_uri:
+        raise HTTPException(status_code=500, detail="Google OAuth not configured")
+    state = secrets.token_urlsafe(16)
+    try:
+        db.oauth_states.insert_one({"state": state, "created_at": datetime.utcnow()})
+    except Exception:
+        pass
+    params = {
+        "client_id": client_id,
+        "redirect_uri": redirect_uri,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "state": state,
+        "access_type": "offline",
+        "prompt": "consent"
+    }
+    auth_url = "https://accounts.google.com/o/oauth2/v2/auth?" + urlencode(params)
+    return RedirectResponse(auth_url)
+
+
+@router.get("/google/callback", response_description="Google OAuth2 callback")
+async def google_callback(code: str | None = None, state: str | None = None):
+    if not GOOGLE_AUTH_AVAILABLE:
+        raise HTTPException(status_code=500, detail="google-auth no está instalado en el entorno. Ejecuta 'pip install -r requirements.txt' en el backend.")
+    if not code or not state:
+        raise HTTPException(status_code=400, detail="Missing code or state")
+    stored = db.oauth_states.find_one({"state": state})
+    if not stored:
+        raise HTTPException(status_code=400, detail="Invalid state")
+    token_url = "https://oauth2.googleapis.com/token"
+    data = {
+        "code": code,
+        "client_id": os.getenv("GOOGLE_CLIENT_ID"),
+        "client_secret": os.getenv("GOOGLE_CLIENT_SECRET"),
+        "redirect_uri": os.getenv("GOOGLE_REDIRECT_URI"),
+        "grant_type": "authorization_code"
+    }
+    token_resp = requests.post(token_url, data=data)
+    if token_resp.status_code != 200:
+        raise HTTPException(status_code=400, detail="Token exchange failed")
+    token_json = token_resp.json()
+    id_token = token_json.get("id_token")
+    # Verify id_token using google-auth
+    try:
+        request_adapter = google_requests.Request()
+        info = google_id_token.verify_oauth2_token(id_token, request_adapter, os.getenv("GOOGLE_CLIENT_ID"))
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid id_token")
+
+    google_id = info.get("sub")
+    email = info.get("email")
+    name = info.get("name") or email
+    picture = info.get("picture")
+
+    user = db.users.find_one({"google_id": google_id}) or db.users.find_one({"email": email})
+    now = datetime.utcnow()
+    if user:
+        db.users.update_one({"_id": user["_id"]}, {"$set": {"email": email, "name": name, "picture": picture, "google_id": google_id, "updated_at": now}})
+        user_id = user["_id"]
+        role = user.get("role", "user")
+    else:
+        res = db.users.insert_one({"email": email, "name": name, "picture": picture, "google_id": google_id, "role": "user", "created_at": now})
+        user_id = res.inserted_id
+        role = "user"
+
+    app_token = signJWT(str(user_id), role)
+    frontend = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    access = app_token["access_token"] if isinstance(app_token, dict) and app_token.get("access_token") else app_token
+    redirect_to = f"{frontend}/auth/callback?token={access}"
+    return RedirectResponse(redirect_to)

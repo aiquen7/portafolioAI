@@ -3,21 +3,9 @@ from typing import Optional
 from datetime import datetime
 
 class User(BaseModel):
-    id: Optional[str] = Field(alias="_id")
-    name: str
-    email: EmailStr
-    password_hash: str
-    country: Optional[str] = None
-    experience_level: Optional[str] = None
-    investment_goal: Optional[str] = None
-    risk_profile_answers: Optional[dict] = None
-    preferences: Optional[dict] = None
-    role: str = "user"  # Puede ser 'user' o 'admin'
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-
-    class Config:
-        allow_population_by_field_name = True
-        schema_extra = {
+    model_config = {
+        "populate_by_name": True,
+        "json_schema_extra": {
             "example": {
                 "name": "Abril Tello",
                 "email": "abril@example.com",
@@ -30,3 +18,16 @@ class User(BaseModel):
                 "role": "admin"
             }
         }
+    }
+
+    id: Optional[str] = Field(alias="_id")
+    name: str
+    email: EmailStr
+    password_hash: str
+    country: Optional[str] = None
+    experience_level: Optional[str] = None
+    investment_goal: Optional[str] = None
+    risk_profile_answers: Optional[dict] = None
+    preferences: Optional[dict] = None
+    role: str = "user"  # Puede ser 'user' o 'admin'
+    created_at: datetime = Field(default_factory=datetime.utcnow)

@@ -5,7 +5,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
 
 
-const COLORS = ['#14b8a6', '#f59e0b', '#06b6d4', '#10b981', '#6366f1', '#eab308', '#f43f5e', '#22d3ee', '#a3e635', '#8b5cf6'];
+const COLORS = ['#003366', '#0056b3', '#0077cc', '#0099ff', '#1e88e5', '#1565c0', '#1976d2', '#1e8449', '#2e7d32', '#388e3c'];
 
 
 
@@ -18,11 +18,11 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ portfolio }) => {
   if (!portfolio) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-gray-800 rounded-xl p-8 text-center shadow-lg">
-          <h2 className="text-2xl font-bold text-teal-400 mb-4">No tienes portafolio generado</h2>
-          <p className="text-gray-300 mb-4">Haz la encuesta para generar tu portafolio personalizado.</p>
+        <div className="bg-white rounded-lg p-8 text-center shadow-md border border-gray-200">
+          <h2 className="text-2xl font-bold text-blue-900 mb-4">No tienes portafolio generado</h2>
+          <p className="text-gray-600 mb-4">Haz la encuesta para generar tu portafolio personalizado.</p>
           <Link to="/risk-profile-form">
-            <button className="bg-teal-500 text-white font-semibold px-6 py-2 rounded-lg shadow hover:bg-teal-600 transition">Ir a la encuesta</button>
+            <button className="bg-blue-900 text-white font-semibold px-6 py-2 rounded-lg shadow hover:bg-blue-800 transition">Ir a la encuesta</button>
           </Link>
         </div>
       </div>
@@ -42,60 +42,49 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ portfolio }) => {
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-teal-900 py-8 px-2 sm:px-4 md:px-8 animate-fade-in">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 py-8 px-2 sm:px-4 md:px-8 animate-fade-in">
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8 sm:mb-12 text-center relative">
-          <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none select-none">
-            <i className="fas fa-chart-pie text-[180px] text-teal-500"></i>
-          </div>
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-teal-400 via-cyan-400 to-teal-400 bg-clip-text text-transparent relative z-10 drop-shadow-lg">
-            <i className="fas fa-compass mr-4"></i>Tu Portafolio Actual
-          </h1>
-          <p className="text-gray-300 text-base sm:text-xl relative z-10">Basado en tu perfil de riesgo, mostramos los activos más recomendados para tu inversión</p>
-          <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-3 relative z-10">
+        <div className="mb-8 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 text-blue-900">Tu Portafolio Actual</h1>
+          <p className="text-gray-600 text-base sm:text-lg">Basado en tu perfil de riesgo, estos son los activos recomendados para tu inversión</p>
+          <div className="mt-4 flex flex-col sm:flex-row items-start gap-3">
             <Link to="/risk-profile-form">
-              <button className="flex items-center gap-2 text-teal-700 font-semibold px-4 py-2 rounded-lg border border-teal-300 bg-white/80 hover:bg-teal-100 hover:border-teal-500 transition-colors duration-200 shadow cursor-pointer">
-                <i className="fas fa-sync-alt text-teal-500 text-base"></i>
-                Actualizar mi portafolio
+              <button className="flex items-center gap-2 text-blue-900 font-semibold px-4 py-2 rounded-lg border border-blue-900 bg-white hover:bg-blue-50 transition-colors duration-200 shadow-sm">
+                ↻ Actualizar mi portafolio
               </button>
             </Link>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
           {/* Métricas Clave */}
-          <div className="space-y-6 sm:space-y-8">
-            <div className="bg-gray-800 rounded-2xl shadow-2xl border border-teal-700 p-6 sm:p-8 flex flex-col items-center animate-fade-in">
-              <h3 className="text-lg sm:text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                <i className="fas fa-chart-line text-teal-400"></i>
-                Retorno Esperado Anual
+          <div className="space-y-6">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                📈 Retorno Esperado Anual
               </h3>
-              <p className="text-4xl sm:text-6xl font-bold text-teal-400 drop-shadow-xl animate-pulse">{(metrics.expected_return * 100).toFixed(2)}%</p>
+              <p className="text-4xl sm:text-5xl font-bold text-blue-900">{(metrics.expected_return * 100).toFixed(2)}%</p>
             </div>
-            <div className="bg-gray-800 rounded-2xl shadow-2xl border border-amber-700 p-6 sm:p-8 flex flex-col items-center animate-fade-in">
-              <h3 className="text-lg sm:text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                <i className="fas fa-shield-alt text-amber-400"></i>
-                Nivel de Riesgo
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                🛡️ Nivel de Riesgo
               </h3>
-              <p className="text-4xl sm:text-6xl font-bold text-amber-400 drop-shadow-xl animate-pulse">{(metrics.risk * 100).toFixed(2)}%</p>
+              <p className="text-4xl sm:text-5xl font-bold text-orange-600">{(metrics.risk * 100).toFixed(2)}%</p>
             </div>
-            <div className="mt-6 sm:mt-8 text-center">
+            <div className="mt-6">
               <Link to="/dashboard/recommendations">
-                <button className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white font-bold py-2 sm:py-3 px-6 sm:px-10 rounded-xl hover:from-teal-600 hover:to-cyan-600 transition duration-300 shadow-lg shadow-teal-900/40 text-base sm:text-lg">
-                  Ver mi Estrategia Completa
+                <button className="w-full bg-blue-900 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-800 transition duration-300 shadow-md">
+                  Ver Estrategia Completa
                 </button>
               </Link>
             </div>
           </div>
 
           {/* Distribución de Activos */}
-          <div className="bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 p-6 sm:p-8 animate-fade-in">
-            <h3 className="text-lg sm:text-2xl font-semibold text-white mb-4 sm:mb-6 flex items-center gap-2">
-              <i className="fas fa-layer-group text-cyan-400"></i>
-              Distribución de Activos Recomendados
-            </h3>
-            <div className="flex flex-col items-center gap-6 sm:gap-8">
-              <div className="h-48 sm:h-64 w-full">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Distribución de Activos Recomendados</h3>
+            <div className="flex flex-col items-center gap-6">
+              <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie

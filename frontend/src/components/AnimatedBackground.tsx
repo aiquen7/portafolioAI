@@ -1,29 +1,38 @@
 import React from 'react';
 
-const AnimatedBackground: React.FC = () => {
+interface Props {
+  particleCount?: number;
+}
+
+const AnimatedBackground: React.FC<Props> = ({ particleCount = 8 }) => {
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-      {/* Grid pattern with subtle animation */}
-      <div className="absolute inset-0 bg-grid-pattern opacity-10"></div>
-      
-      {/* Animated gradient orbs */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl animate-pulse-slow"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-pulse-slower"></div>
-      
-      {/* Floating particles */}
+    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none" aria-hidden="true" role="presentation">
+      {/* Subtle grid pattern */}
+      <div className="absolute inset-0 bg-grid-pattern opacity-6"></div>
+
+      {/* Responsive gradient orbs */}
+      <div className="absolute -top-8 -left-6 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-br from-blue-100/60 to-blue-200/30 rounded-full blur-3xl animate-pulse-slow" />
+      <div className="absolute -bottom-10 -right-6 w-64 h-64 sm:w-96 sm:h-96 bg-gradient-to-br from-blue-50/40 to-blue-100/20 rounded-full blur-3xl animate-pulse-slower" />
+
+      {/* Minimal floating particles (controlled count) */}
       <div className="particles-container">
-        {[...Array(20)].map((_, i) => (
+        {Array.from({ length: particleCount }).map((_, i) => (
           <div
             key={i}
             className="particle"
             style={{
               left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 5}s`,
-              animationDuration: `${15 + Math.random() * 10}s`,
+              width: `${1 + Math.random() * 2}px`,
+              height: `${1 + Math.random() * 2}px`,
+              animationDelay: `${Math.random() * 6}s`,
+              animationDuration: `${12 + Math.random() * 12}s`,
             }}
-          ></div>
+          />
         ))}
       </div>
+
+      {/* Soft overlay to keep contrast on top of content */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-white/20 pointer-events-none" />
     </div>
   );
 };
