@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 
 interface GoogleSignInButtonProps {
@@ -8,11 +8,71 @@ interface GoogleSignInButtonProps {
 
 const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onSuccess, variant = 'modal' }) => {
   const divRef = useRef<HTMLDivElement | null>(null);
+  const onSuccessRef = useRef(onSuccess);
+
+  // Actualizar ref cuando onSuccess cambia para evitar reinicializaciones del useEffect
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+  }, [onSuccess]);
+
+  // Manejar la respuesta de Google credencial
+  const handleCredentialResponse = useCallback(async (response: any) => {
+    const id_token = response?.credential;
+    if (!id_token) {
+      console.error('[GoogleSignInButton] No credential en respuesta de Google');
+      return;
+    }
+    try {
+      console.log('[GoogleSignInButton] Enviando id_token a /api/auth/google/verify...');
+      const resp = await axios.post('/api/auth/google/verify', { id_token });
+      console.log('[GoogleSignInButton] Respuesta del servidor:', resp.data);
+      
+      // Manejar correctamente la respuesta - puede ser {access_token: ".."} o solo la cadena
+      const token = resp.data?.access_token || resp.data;
+      if (!token) {
+        console.error('[GoogleSignInButton] No se recibió token en la respuesta:', resp.data);
+        alert('Error: No se recibió token del servidor');
+        return;
+      }
+      
+      console.log('[GoogleSignInButton] Token recibido, guardando en localStorage...');
+      const tokenStr = typeof token === 'string' ? token : token;
+      localStorage.setItem('token', tokenStr);
+      
+      try {
+        const decoded = JSON.parse(atob(tokenStr.split('.')[1]));
+        if (decoded?.user_id) {
+          localStorage.setItem('user_id', decoded.user_id);
+          console.log('[GoogleSignInButton] User ID guardado:', decoded.user_id);
+        }
+      } catch (e) {
+        console.warn('[GoogleSignInButton] No se pudo decodificar token:', e);
+      }
+      
+      console.log('[GoogleSignInButton] Token guardado correctamente');
+      
+      // Ejecutar el callback con la referencia actualizada
+      if (onSuccessRef.current) {
+        console.log('[GoogleSignInButton] Ejecutando onSuccess callback');
+        onSuccessRef.current();
+      } else {
+        console.log('[GoogleSignInButton] No hay onSuccess, redirigiendo a /');
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 100);
+      }
+    } catch (err: any) {
+      console.error('[GoogleSignInButton] Error en Google verify:', err);
+      console.error('[GoogleSignInButton] Status:', err.response?.status);
+      console.error('[GoogleSignInButton] Data:', err.response?.data);
+      alert('Error al autenticar con Google: ' + (err.response?.data?.detail || err.message));
+    }
+  }, []);
 
   useEffect(() => {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
     if (!clientId) {
-      console.warn('VITE_GOOGLE_CLIENT_ID no está configurado en .env');
+      console.warn('[GoogleSignInButton] VITE_GOOGLE_CLIENT_ID no está configurado en .env');
       return;
     }
 
@@ -30,13 +90,18 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onSuccess, vari
     }
 
     function initializeGSI(clientId: string) {
+      console.log('[GoogleSignInButton] Inicializando Google Identity Services...');
       // @ts-ignore
-      if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+      if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+        console.warn('[GoogleSignInButton] Google Identity Services no cargó correctamente');
+        return;
+      }
       // @ts-ignore
       window.google.accounts.id.initialize({
         client_id: clientId,
         callback: handleCredentialResponse,
       });
+      console.log('[GoogleSignInButton] Google inicializado, renderizando botón...');
       // Render button into our container
       if (divRef.current) {
         // @ts-ignore
@@ -44,38 +109,28 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onSuccess, vari
           theme: variant === 'header' ? 'filled_blue' : 'outline',
           size: variant === 'header' ? 'medium' : 'large',
           width: variant === 'header' ? '200' : '100%',
+          text: variant === 'modal' ? 'signup_with' : 'signin_with',
         });
+        console.log('[GoogleSignInButton] Botón renderizado en container');
+      } else {
+        console.warn('[GoogleSignInButton] divRef.current no está disponible');
       }
     }
+  }, []); // Solo ejecutar al montar - handleCredentialResponse está en useCallback con dependencias vacías
 
-    async function handleCredentialResponse(response: any) {
-      const id_token = response?.credential;
-      if (!id_token) return;
-      try {
-        const resp = await axios.post('/api/auth/google/verify', { id_token });
-        const token = resp.data?.access_token || resp.data;
-        if (token) {
-          localStorage.setItem('token', token);
-          try {
-            const decoded = JSON.parse(atob(token.split('.')[1]));
-            if (decoded?.user_id) localStorage.setItem('user_id', decoded.user_id);
-          } catch (e) {
-            // ignore
-          }
-          // Callback o redirigir
-          if (onSuccess) {
-            onSuccess();
-          } else {
-            window.location.href = '/';
-          }
-        }
-      } catch (err) {
-        console.error('Google verify failed', err);
-      }
-    }
-  }, [onSuccess]);
-
-  return <div ref={divRef} />;
+  return (
+    <div
+      ref={divRef}
+      style={{
+        display: 'flex',
+        justifyContent: variant === 'modal' ? 'center' : 'flex-start',
+        width: '100%',
+        minHeight: '44px',
+        alignItems: 'center',
+      }}
+      className="google-signin-container"
+    />
+  );
 };
 
 export default GoogleSignInButton;

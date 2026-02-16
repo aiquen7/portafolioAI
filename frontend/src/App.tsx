@@ -3,7 +3,7 @@
 // Componente principal de la aplicación
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import AuthModal from './components/AuthModal';
 import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
@@ -13,6 +13,7 @@ import { getAuthToken, removeAuthToken, fetchCurrentUser, fetchUserPortfolio } f
 import AboutUs from './pages/AboutUs';
 import TermsOfService from './pages/TermsOfService';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import AuthCallback from './pages/AuthCallback';
 // Importar componentes de admin
 import AdminDashboard from './pages/Admin/AdminDashboard';
 // Eliminar referencias a LogsAudit y SupportMessages
@@ -87,11 +88,15 @@ function App() {
   const navigate = useNavigate();
   // Función llamada cuando la autenticación es exitosa
   const handleLoginSuccess = async (source: 'login' | 'register') => {
+    console.log('[handleLoginSuccess] Iniciando con source:', source);
     setIsAuthenticated(true);
     setIsAuthModalOpen(false);
 
     try {
+      console.log('[handleLoginSuccess] Obteniendo usuario actual...');
       const me = await fetchCurrentUser();
+      console.log('[handleLoginSuccess] Usuario obtenido:', me.data);
+      
       const isAdminUser = me.data?.role === 'admin';
       setIsAdmin(isAdminUser); // Actualiza el estado global
       // Guardar el nombre del usuario
@@ -100,21 +105,29 @@ function App() {
       } else {
         setUserName('');
       }
+      
+      console.log('[handleLoginSuccess] isAdminUser:', isAdminUser);
       if (isAdminUser) {
+        console.log('[handleLoginSuccess] Redirigiendo a /admin');
         navigate('/admin');
         return;
       }
       if (source === 'register') {
+        console.log('[handleLoginSuccess] Redirigiendo a /risk-profile-form (registro)');
         navigate('/risk-profile-form');
         return;
       }
       const hasPortfolio = !!me.data?.portfolio;
+      console.log('[handleLoginSuccess] hasPortfolio:', hasPortfolio);
       if (hasPortfolio) {
+        console.log('[handleLoginSuccess] Redirigiendo a /dashboard/overview');
         navigate('/dashboard/overview');
       } else {
+        console.log('[handleLoginSuccess] Redirigiendo a /risk-profile-form (sin portafolio)');
         navigate('/risk-profile-form');
       }
     } catch (err: any) {
+      console.error('[handleLoginSuccess] Error:', err);
       if (err.response?.status === 401) {
         console.error("Token inválido después del login:", err);
         removeAuthToken();
@@ -190,6 +203,7 @@ function App() {
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         {/* Otras rutas públicas o de error */}
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="*" element={null} />
       </Routes>
 
