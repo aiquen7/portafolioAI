@@ -52,7 +52,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import RedirectResponse
 
-from typing import Dict
+from typing import Dict, Optional
 try:
     from typing import Annotated
 except ImportError:
@@ -241,7 +241,7 @@ async def google_login():
 
 
 @router.get("/google/callback", response_description="Google OAuth2 callback")
-async def google_callback(code: str | None = None, state: str | None = None):
+async def google_callback(code: Optional[str] = None, state: Optional[str] = None):
     if not GOOGLE_AUTH_AVAILABLE:
         raise HTTPException(status_code=500, detail="google-auth no está instalado en el entorno. Ejecuta 'pip install -r requirements.txt' en el backend.")
     if not code or not state:
