@@ -37,6 +37,31 @@ def send_reset_email(to_email: str, token: str):
     # smtp.send_message(msg)
     print(f"Email de recuperación enviado a {to_email} con token: {token}")
 
+def send_verification_email(to_email: str, token: str):
+    msg = EmailMessage()
+    msg["Subject"] = "Verifica tu correo en PortafolioAI"
+    msg["From"] = "no-reply@portafolioai.com"
+    msg["To"] = to_email
+    verify_link = os.getenv("FRONTEND_URL", "http://localhost:5173") + f"/verify-email?token={token}&email={to_email}"
+    msg.set_content(f"Gracias por registrarte en PortafolioAI. Haz clic en el siguiente enlace para verificar tu correo:\n\n{verify_link}\n\nSi no solicitaste esto, ignora este mensaje.")
+    # Intentar enviar vía SMTP si está configurado
+    try:
+        smtp_host = os.getenv("SMTP_HOST", "smtp.gmail.com")
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        smtp_user = os.getenv("SMTP_USER")
+        smtp_pass = os.getenv("SMTP_PASS")
+        if smtp_user and smtp_pass:
+            smtp = smtplib.SMTP(smtp_host, smtp_port)
+            smtp.starttls()
+            smtp.login(smtp_user, smtp_pass)
+            smtp.send_message(msg)
+            smtp.quit()
+            print(f"Email de verificación enviado a {to_email}")
+        else:
+            print(f"SMTP no configurado. Mostrar enlace de verificación en logs: {verify_link}")
+    except Exception as e:
+        print(f"Error enviando email de verificación: {e}")
+
 @router.post("/forgot-password", response_description="Enviar email de recuperación")
 async def forgot_password(data: ForgotPasswordRequest, background_tasks: BackgroundTasks):
     user = db.users.find_one({"email": data.email})
@@ -57,7 +82,7 @@ try:
     from typing import Annotated
 except ImportError:
     from typing_extensions import Annotated
-from datetime import datetime
+from datetime import datetime, timedelta
 from pydantic import BaseModel, EmailStr
 
 from app.models.user import User
@@ -122,7 +147,7 @@ def require_admin(current_user: dict = Depends(get_current_user)):
     return current_user
 
 @router.post("/register", response_description="Register new user")
-async def register_user(user_data: UserRegister = Body(...)):
+async def register_user(user_data: UserRegister = Body(...), background_tasks: BackgroundTasks = None):
     hashed_password = get_password_hash(user_data.password)
     if db.users.find_one({"email": user_data.email}):
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -136,7 +161,24 @@ async def register_user(user_data: UserRegister = Body(...)):
     }
     new_user = db.users.insert_one(new_user_doc)
     created_user = db.users.find_one({"_id": new_user.inserted_id})
-    return {"message": "User registered successfully", "user_id": str(created_user["_id"])}
+
+    # Generar token de verificación y almacenarlo
+    verification_token = None
+    try:
+        verification_token = secrets.token_urlsafe(24)
+        verification_exp = datetime.utcnow() + timedelta(hours=24)
+        db.users.update_one({"_id": created_user["_id"]}, {"$set": {"verification_token": verification_token, "verification_exp": verification_exp}})
+    except Exception:
+        verification_token = None
+
+    # Enviar email de verificación en background si hay SMTP configurado
+    if verification_token and background_tasks is not None:
+        try:
+            background_tasks.add_task(send_verification_email, created_user["email"], verification_token)
+        except Exception:
+            pass
+
+    return {"message": "User registered successfully. Verification email sent if SMTP configured.", "user_id": str(created_user["_id"])}
 
 @router.post("/login", response_description="Login user")
 async def user_login(user_credentials: Dict[str, str] = Body(...)):

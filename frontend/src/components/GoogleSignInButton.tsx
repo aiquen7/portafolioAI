@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 
 interface GoogleSignInButtonProps {
   onSuccess?: () => void;
   variant?: 'header' | 'modal';
+  action?: 'signin' | 'signup';
 }
 
-const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onSuccess, variant = 'modal' }) => {
+const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onSuccess, variant = 'modal', action = 'signin' }) => {
   const divRef = useRef<HTMLDivElement | null>(null);
   const onSuccessRef = useRef(onSuccess);
 
@@ -23,8 +24,8 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onSuccess, vari
       return;
     }
     try {
-      console.log('[GoogleSignInButton] Enviando id_token a /api/auth/google/verify...');
-      const resp = await axios.post('/api/auth/google/verify', { id_token });
+      console.log('[GoogleSignInButton] Enviando id_token a backend /auth/google/verify...');
+      const resp = await api.post('/auth/google/verify', { id_token });
       console.log('[GoogleSignInButton] Respuesta del servidor:', resp.data);
       
       // Manejar correctamente la respuesta - puede ser {access_token: ".."} o solo la cadena
@@ -109,7 +110,7 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ onSuccess, vari
           theme: variant === 'header' ? 'filled_blue' : 'outline',
           size: variant === 'header' ? 'medium' : 'large',
           width: variant === 'header' ? '200' : '100%',
-          text: variant === 'modal' ? 'signup_with' : 'signin_with',
+          text: action === 'signup' ? 'signup_with' : 'signin_with',
         });
         console.log('[GoogleSignInButton] Botón renderizado en container');
       } else {

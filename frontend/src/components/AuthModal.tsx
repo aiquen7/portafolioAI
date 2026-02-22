@@ -88,13 +88,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
     }
     try {
       if (isRegister) {
+        // Registrar usuario y mostrar mensaje de verificación (no auto-login)
         await registerUser({ name, email, password });
-        const loginResponse = await loginUser({ email, password });
-        localStorage.setItem('token', loginResponse.data.access_token);
-        const decodedToken = JSON.parse(atob(loginResponse.data.access_token.split('.')[1]));
-        localStorage.setItem('user_id', decodedToken.user_id);
         setRegisterSuccess(true);
-        onLoginSuccess('register');
+        // No hacer auto-login: esperar verificación por email
       } else {
         const response = await loginUser({ email, password });
         localStorage.setItem('token', response.data.access_token);
@@ -140,8 +137,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
         {/* Mensaje de éxito tras registro */}
         {registerSuccess && (
           <div className="mb-4 p-3 bg-green-50 text-green-700 rounded-lg text-center text-sm border border-green-200">
-            ✓ Registro exitoso. ¡Bienvenido!
-          </div>
+              ✓ Registro exitoso. Revisa tu correo para verificar la cuenta (si no llega, revisa carpeta de spam).
+            </div>
         )}
 
         {/* Formulario */}
@@ -267,7 +264,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLoginSuccess, 
 
         {/* Botón de inicio con Google */}
         <div className="mt-4">
-          <GoogleSignInButton variant="modal" onSuccess={() => onLoginSuccess('login')} />
+            <GoogleSignInButton variant="modal" action={isRegister ? 'signup' : 'signin'} onSuccess={() => onLoginSuccess('login')} />
         </div>
 
         {/* Alternar login/registro */}
